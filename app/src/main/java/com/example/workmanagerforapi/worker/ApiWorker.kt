@@ -27,7 +27,7 @@ class ApiWorker(private val context: Context,
                         "response" to "success"
                     ))
                 }
-                if(response.isSuccessful){
+                if(!response.isSuccessful){
                     Result.failure(
                         workDataOf(
                             "error" to "not success"
