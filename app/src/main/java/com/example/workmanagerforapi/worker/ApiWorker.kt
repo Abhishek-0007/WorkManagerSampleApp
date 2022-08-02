@@ -11,25 +11,40 @@ import com.example.workmanagerforapi.api.ApiService
 import com.example.workmanagerforapi.database.ResponseDB
 import com.example.workmanagerforapi.database.ResponseDatabase
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-const val KEY_RESULT = "result"
 class ApiWorker(private val context: Context,
                 params:WorkerParameters) : CoroutineWorker(context, params){
 
     override suspend fun doWork(): Result {
-        Log.d(TAG, "doWork: ")
-        val responseDatabase = ResponseDatabase.getDatabase(context)
-        val response = ApiService.apiInterface.getData()
-        var data : List<ResponseDB>? = null
-        response.body()?.let {
-            data = it
-        }
+            withContext(Dispatchers.IO){
+                val response = ApiService.apiInterface.getData()
+                response.body()?.let {
+                   list  =  it
 
-        if (data != null) {
-            val output: Data = workDataOf(KEY_RESULT to Gson().toJson(data))
-            responseDatabase.responseDao().addData(data!!)
-            return Result.success(output)
-        }
-        return Result.failure()
+                    return@let Result.success(workDataOf(
+                        "response" to "success"
+                    ))
+                }
+                if(response.isSuccessful){
+                    Result.failure(
+                        workDataOf(
+                            "error" to "not success"
+                        )
+                    )
+                }else{
+                    Result.failure(
+                        workDataOf(
+                            "server" to "failed"
+                        )
+                    )
+                }
+            }
+        return Result.success()
+    }
+
+    companion object{
+         var list  = listOf<ResponseDB>()
     }
 }
